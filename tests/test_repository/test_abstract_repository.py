@@ -1,20 +1,15 @@
-from bookkeeper.repository.abstract_repository import AbstractRepository
+"""
+Repository protocol class tests.
+"""
 
-import pytest
+from bookkeeper.repository.abstract_repository import RepositoryProtocol
+from bookkeeper.repository.memory_repository import MemoryRepository
+from bookkeeper.repository.sqlite_repository import SQLiteRepository
 
 
-def test_cannot_create_abstract_repository():
-    with pytest.raises(TypeError):
-        AbstractRepository()
-
-
-def test_can_create_subclass():
-    class Test(AbstractRepository):
-        def add(self, obj): pass
-        def get(self, pk): pass
-        def get_all(self, where=None): pass
-        def update(self, obj): pass
-        def delete(self, pk): pass
-
-    t = Test()
-    assert isinstance(t, AbstractRepository)
+def test_repos_implement():
+    """
+    Repositories must implement the protocol correctly.
+    """
+    assert issubclass(MemoryRepository, RepositoryProtocol)
+    assert issubclass(SQLiteRepository, RepositoryProtocol)

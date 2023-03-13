@@ -1,30 +1,34 @@
 """
-Модуль содержит описание абстрактного репозитория
+Repository protocol class module.
 
-Репозиторий реализует хранение объектов, присваивая каждому объекту уникальный
-идентификатор в атрибуте pk (primary key). Объекты, которые могут быть сохранены
-в репозитории, должны поддерживать добавление атрибута pk и не должны
-использовать его для иных целей.
+This may be short-cited, but to arguably reduce coupling (and to test myself) I swithced
+from double inheritance from ABC and Generic[T] to a generic Protocol of T.
+
+An object which follows the protocol would implement entry storage, which assigns
+a unique primary key (pk) to each entry. Objects to be stored should implement
+the pk attribute and should not use it otherwise.
 """
 
-from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Protocol, Any
+from abc import abstractmethod
+from typing import TypeVar, Protocol, Any, runtime_checkable
 
 
-class Model(Protocol):  # pylint: disable=too-few-public-methods
+class KeyObject(Protocol):  # pylint: disable=too-few-public-methods
     """
-    Модель должна содержать атрибут pk
+    An object that has a primary key attribute.
     """
+
     pk: int
 
 
-T = TypeVar('T', bound=Model)
+T = TypeVar("T", bound=KeyObject)
 
 
-class AbstractRepository(ABC, Generic[T]):
+@runtime_checkable
+class RepositoryProtocol(Protocol[T]):
     """
-    Абстрактный репозиторий.
-    Абстрактные методы:
+    Repository protocol
+    Methods:
     add
     get
     get_all
@@ -35,26 +39,31 @@ class AbstractRepository(ABC, Generic[T]):
     @abstractmethod
     def add(self, obj: T) -> int:
         """
-        Добавить объект в репозиторий, вернуть id объекта,
-        также записать id в атрибут pk.
+        Add an object to the repo and return its id.
         """
 
     @abstractmethod
     def get(self, pk: int) -> T | None:
-        """ Получить объект по id """
+        """
+        Get and object with a fixed id.
+        """
 
     @abstractmethod
-    def get_all(self, where: dict[str, Any] | None = None) -> list[T]:
+    def get_all_where(self, where: dict[str, Any] | None = None) -> list[T]:
         """
-        Получить все записи по некоторому условию
-        where - условие в виде словаря {'название_поля': значение}
-        если условие не задано (по умолчанию), вернуть все записи
+        Get all entries that satisfy all "where" conditions, return all
+        entris if where is None.
+        where is a dictionary {"entry_field": value}
         """
 
     @abstractmethod
     def update(self, obj: T) -> None:
-        """ Обновить данные об объекте. Объект должен содержать поле pk. """
+        """
+        Update an entry with the same pk as the object.
+        """
 
     @abstractmethod
     def delete(self, pk: int) -> None:
-        """ Удалить запись """
+        """
+        Remove an entry.
+        """
